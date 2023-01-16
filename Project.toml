@@ -3,6 +3,13 @@ uuid = "d6fe2ffa-86ca-42ef-a5ba-e9645e5f8abd"
 authors = ["Martina-Garavaglia"]
 version = "0.1.0"
 
+[deps]
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
+GeoJSON = "61d90e0f-e114-555e-ac52-39dfb47a3ef9"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+
 [compat]
 julia = "1"
 
