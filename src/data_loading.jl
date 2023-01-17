@@ -3,7 +3,7 @@ using GeoJSON, DataFrames, DelimitedFiles, CSV
 # Loading Milano grid data
 
 function load_grid(data::AbstractString, df_format::Bool) # "data/milano-grid.geojson"
-    jsonbytes = read(data);
+    jsonbytes = read(data)
     fc = GeoJSON.read(jsonbytes)
     df = DataFrame(fc)
     if df_format == true
@@ -13,18 +13,17 @@ function load_grid(data::AbstractString, df_format::Bool) # "data/milano-grid.ge
     end
 end
 
-
 # Loading telecommunication data
 
 function load_telecom_data(df_format = true)
     if df_format 
-        data1 = DataFrame(CSV.File("data/sms-call-internet-mi-2013-11-01.csv"))
-        data2 = DataFrame(CSV.File("data/sms-call-internet-mi-2013-11-02.csv"))
-        data3 = DataFrame(CSV.File("data/sms-call-internet-mi-2013-11-03.csv"))
-        data4 = DataFrame(CSV.File("data/sms-call-internet-mi-2013-11-04.csv"))
-        data5 = DataFrame(CSV.File("data/sms-call-internet-mi-2013-11-05.csv"))
-        data6 = DataFrame(CSV.File("data/sms-call-internet-mi-2013-11-06.csv"))
-        data7 = DataFrame(CSV.File("data/sms-call-internet-mi-2013-11-07.csv"))
+        data1 = DataFrame(CSV.File("data/sms-call-internet-mi-2013-11-01.csv"));
+        data2 = DataFrame(CSV.File("data/sms-call-internet-mi-2013-11-02.csv"));
+        data3 = DataFrame(CSV.File("data/sms-call-internet-mi-2013-11-03.csv"));
+        data4 = DataFrame(CSV.File("data/sms-call-internet-mi-2013-11-04.csv"));
+        data5 = DataFrame(CSV.File("data/sms-call-internet-mi-2013-11-05.csv"));
+        data6 = DataFrame(CSV.File("data/sms-call-internet-mi-2013-11-06.csv"));
+        data7 = DataFrame(CSV.File("data/sms-call-internet-mi-2013-11-07.csv"));
     else
         data1 = readdlm("data/sms-call-internet-mi-2013-11-01.csv",  ',');
         data2 = readdlm("data/sms-call-internet-mi-2013-11-02.csv",  ',');
@@ -37,6 +36,7 @@ function load_telecom_data(df_format = true)
     return data1, data2, data3, data4, data5, data6, data7
 end
 
+# Fill missing data with zero value
 
 function fill_missing_data(data::Any)
     if typeof(data) == Matrix{Any}
