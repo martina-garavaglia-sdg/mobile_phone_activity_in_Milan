@@ -1,6 +1,7 @@
 using mobile_phone_activity_in_Milan
 using DataFramesMeta, JSON
-using Flux:  @epochs, onehotbatch, onecold, logitcrossentropy, train!, throttle, flatten
+using Flux
+using Flux: @epochs, train!
 using Flux.Data: DataLoader
 using Plots
 using ParametricMachinesDemos
@@ -29,6 +30,8 @@ machine = RecurMachine(dimensions, sigmoid; pad=1, timeblock=10);
 
 model = Flux.Chain(machine, Conv((1,), sum(dimensions) => 100));
 
+model = cpu(model)
+
 opt = ADAM(0.01);
 
 params = Flux.params(model);
@@ -42,10 +45,10 @@ loss_on_train = Float64[]
 loss_on_test = Float64[]
 best_params = Float32[]
 
-for epoch in 1:5
+for epoch in 1:10
 
     # Train
-    Flux.train!(loss, params, train_data, optimiser)
+    Flux.train!(loss, params, train_data, opt)
 
     # Show the sum of the gradients
     gs = gradient(params) do
@@ -77,13 +80,12 @@ Flux.loadparams!(model, best_params);
 
 
 # Visualization
-plot(epochs, loss_on_train, lab="Training", c=:black, lw=2, ylims = (0,10));
-plot!(epochs, loss_on_test, lab="Test", c=:green, lw=2, ylims = (0,10));
+plot(epochs, loss_on_train, lab="Training", c=:black, lw=2, ylims = (0,0.2));
+plot!(epochs, loss_on_test, lab="Test", c=:green, lw=2, ylims = (0,0.2));
 title!("Time machine");
 yaxis!("Loss");
 xaxis!("Training epoch");
-savefig("loss.png");
-
+savefig("loss_time_machine.png");
 
 
 
