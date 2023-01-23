@@ -1,17 +1,4 @@
-using GeoJSON, DataFrames, DelimitedFiles, CSV
-
-# Loading Milano grid data
-
-function load_grid(data::AbstractString, df_format::Bool) # "data/milano-grid.geojson"
-    jsonbytes = read(data)
-    fc = GeoJSON.read(jsonbytes)
-    df = DataFrame(fc)
-    if df_format == true
-        return df
-    else
-        return Matrix(df)
-    end
-end
+using JSON, DataFrames, DelimitedFiles, CSV
 
 # Loading telecommunication data
 

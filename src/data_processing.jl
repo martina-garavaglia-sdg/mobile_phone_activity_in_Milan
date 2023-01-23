@@ -1,9 +1,8 @@
-using DataFrames, StatsBase
+using DataFrames, StatsBase, Flux
 
 # Trasform my data in order to have a temporal series for every CellID
 
 function make_series(df)
-    # The input must be a dataframe (TODO: case with matrix)
     if typeof(df) == DataFrames.DataFrame
         new_df = empty_dataframe()
         for i in 1:10000
@@ -26,21 +25,109 @@ function empty_dataframe()
         internet = Float64[])
 end
 
-function normalize_dataframe(df)
-    #foreach(c -> c .= (c .- mean(c)) ./ std(c), eachcol(df))
+# Normalize data
+# SKIPMISSING FUNCTION!!
+function normalize_dataframe(df::DataFrame)
+    d = copy(df)
+    mis=0
     for col in 4:8 
-        m = mean(d[:,col])
-        s = std(d[:,col])
+        v = []
         for row in 1:nrow(d)
-            d[row,col] = (d[row,col] - m ) / s
+            if typeof(d[row,col]) != Missing
+                append!(v, d[row,col])
+            end
+        end
+        m = mean(v)
+        s = std(v)
+        for row in 1:nrow(d)
+            d[row,col] = (d[row,col] - m ) / s  
         end
     end
     return d
 end
-# ??? non funziona
 
 
-function norm_data(df)
+function standardize_dataframe(df::DataFrame)
+    d = copy(df)
+    for col in 4:8
+        M = maximum(skipmissing(d[:,col]))
+        m = minimum(skipmissing(d[:,col]))
+        for row in 1:nrow(d)
+            d[row, col] = (d[row,col] - m) / (M - m)
+        end
+    end
+    return d
+end
+
+
+function make_film(g_data::Any)
+
+    v = [] #Array{Float64}(undef, 100, 100, 1, length(g_data))
+
     
 
+    for g in 1:length(g_data)
+        push!(v, transpose(reshape(g_data[g][:,3], (100,100))))
+
+        #v[:,:,1,g] = transpose(reshape(g_data[g][:,3], (100,100)))
+    end
+    v = cat(v..., dims=4)
+
+    return v
+end
+
+
+
+function make_data(data::DataFrame)
+    # standardization
+    ds = standardize_dataframe(data);
+
+    # Fill missing data with zero value
+    m = fill_missing_data(ds);
+
+    grouped_data = groupby(m, [:datetime, :CellID]);
+    d = @combine(grouped_data, :max_ = maximum(:smsin));
+    g = groupby(d, [:datetime]); 
+
+    f = make_film(g);
+
+    return f
+end
+
+
+function split_train_test(data1::DataFrame, data2::DataFrame, data3::DataFrame, data4::DataFrame, data5::DataFrame, data6::DataFrame, data7::DataFrame)
+
+    x_train = []
+    y_train = []
+    x_test = []
+    y_test = []
+
+    d1 = make_data(data1)
+    d2 = make_data(data2)
+    d3 = make_data(data3)
+    d4 = make_data(data4)
+    d5 = make_data(data5)
+    d6 = make_data(data6)
+    d7 = make_data(data7)
+
+    push!(x_train, d1)
+    push!(x_train, d2)
+    push!(x_train, d3)
+    push!(x_train, d4)
+    push!(x_train, d5)
+    push!(x_train, d6[:,:,:,1:23])
+    x_train = cat(x_train..., dims=4)
+
+    push!(y_train, d1[:,:,:,2:end])
+    push!(y_train, d2)
+    push!(y_train, d3)
+    push!(y_train, d4)
+    push!(y_train, d5)
+    push!(y_train, d6)
+    y_train = cat(y_train..., dims=4)
+
+    x_test = d7[:,:,:,1:23]
+    y_test = d7[:,:,:,2:24]
+
+    return x_train, x_test, y_train, y_test
 end

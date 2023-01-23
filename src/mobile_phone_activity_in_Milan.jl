@@ -1,10 +1,11 @@
 module mobile_phone_activity_in_Milan
 
-using GeoJSON, DataFrames, DelimitedFiles, Plots, CSV, DataFramesMeta
+using JSON, DataFrames, DataFramesMeta, DelimitedFiles, Plots, CSV, StatsBase
 
-export load_grid, load_telecom_data, fill_missing_data, empty_dataframe, make_series
+export load_telecom_data, fill_missing_data, empty_dataframe, make_series, normalize_dataframe, standardize_dataframe, make_film, is_best
 
 include("data_loading.jl")
 include("data_processing.jl")
+include("metrics.jl")
 
 end
