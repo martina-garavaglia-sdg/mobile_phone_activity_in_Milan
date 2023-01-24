@@ -11,61 +11,58 @@ grid = JSON.parsefile("data/milano-grid.geojson");
 
 data1, data2, data3, data4, data5, data6, data7 = load_telecom_data(true);
 
-x_train, x_test, y_train, y_test = split_train_test(data1, data2, data3, data4, data5, data6, data7);
+# x e y: x i primi 6 giorni, y il settimo
+x, y = split_x_y(data1, data2, data3, data4, data5, data6, data7)
 
-x_train = dropdims(x_train, dims=3);
-y_train = dropdims(y_train, dims=3);
-x_test = dropdims(x_test, dims=3);
-y_test = dropdims(y_test, dims=3);
+x = dropdims(x, dims=3)
+y = dropdims(y, dims=3)
+
+# x_train, x_test, y_train, y_test = split_train_test(data1, data2, data3, data4, data5, data6, data7);
+
+# x_train = dropdims(x_train, dims=3);
+# y_train = dropdims(y_train, dims=3);
+# x_test = dropdims(x_test, dims=3);
+# y_test = dropdims(y_test, dims=3);
 
 # Loading
-train_data = DataLoader((x_train, y_train); batchsize = 16, shuffle = true);
-test_data = DataLoader((x_test, y_test); batchsize = 16, shuffle = true);
+data = DataLoader((x, y); batchsize = 32, shuffle = true);
+#test_data = DataLoader((x_test, y_test); batchsize = 16, shuffle = true);
 
 
 # Dimensions
-dimensions = [16, 64, 32];
+dimensions = [32, 64, 32];
 
 machine = RecurMachine(dimensions, sigmoid; pad=1, timeblock=10);
 
 model = Flux.Chain(machine, Conv((1,), sum(dimensions) => 100));
 
-model = cpu(model)
+model = cpu(model);
 
 opt = ADAM(0.01);
 
 params = Flux.params(model);
 
 # Loss function
-loss(x,y) = Flux.Losses.mse(model(x), y)
+loss(x,y) = Flux.Losses.mse(model(x), y);
 
 # Training and plotting
 epochs = Int64[]
 loss_on_train = Float64[]
-loss_on_test = Float64[]
 best_params = Float32[]
 
 for epoch in 1:10
 
     # Train
-    Flux.train!(loss, params, train_data, opt)
+    Flux.train!(loss, params, data, opt)
 
-    # Show the sum of the gradients
-    gs = gradient(params) do
-        loss(x_train, y_train)
-    end
-    #@show [norm(g,2) for g in gs] # gradient's norm
-    
-    # Saving losses and accuracies for visualization
+    # Saving loss for visualization
     push!(epochs, epoch)
-    push!(loss_on_train, loss(x_train, y_train))
-    push!(loss_on_test, loss(x_test, y_test))
-    @show loss(x_train, y_train)
-    @show loss(x_test, y_test)
+    push!(loss_on_train, loss(x, y))
+    @show loss(x, y)
 
     # Saving the best parameters
     if epoch > 1
-        if is_best(loss_on_test[epoch-1], loss_on_test[epoch])
+        if is_best(loss_on_train[epoch-1], loss_on_train[epoch])
             best_params = params
         end
     end
@@ -80,18 +77,15 @@ Flux.loadparams!(model, best_params);
 
 
 # Visualization
-plot(epochs, loss_on_train, lab="Training", c=:black, lw=2, ylims = (0,0.2));
-plot!(epochs, loss_on_test, lab="Test", c=:green, lw=2, ylims = (0,0.2));
+plot(epochs, loss_on_train, c=:black, lw=2, ylims = (0,0.2));
 title!("Time machine");
 yaxis!("Loss");
 xaxis!("Training epoch");
 savefig("loss_time_machine.png");
 
 
-
-
-
-
+heatmap(model(x_test)[:,:,22], color=:thermal);
+savefig("heatmap_time_machine2.png");
 
 
 

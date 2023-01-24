@@ -62,14 +62,12 @@ end
 
 function make_film(g_data::Any)
 
-    v = [] #Array{Float64}(undef, 100, 100, 1, length(g_data))
+    v = []
 
     
 
     for g in 1:length(g_data)
         push!(v, transpose(reshape(g_data[g][:,3], (100,100))))
-
-        #v[:,:,1,g] = transpose(reshape(g_data[g][:,3], (100,100)))
     end
     v = cat(v..., dims=4)
 
@@ -130,4 +128,37 @@ function split_train_test(data1::DataFrame, data2::DataFrame, data3::DataFrame, 
     y_test = d7[:,:,:,2:24]
 
     return x_train, x_test, y_train, y_test
+end
+
+
+function split_x_y(data1::DataFrame, data2::DataFrame, data3::DataFrame, data4::DataFrame, data5::DataFrame, data6::DataFrame, data7::DataFrame)
+    x = []
+    y = []
+
+    d1 = make_data(data1)
+    d2 = make_data(data2)
+    d3 = make_data(data3)
+    d4 = make_data(data4)
+    d5 = make_data(data5)
+    d6 = make_data(data6)
+    d7 = make_data(data7)
+
+    push!(x, d1)
+    push!(x, d2)
+    push!(x, d3)
+    push!(x, d4)
+    push!(x, d5)
+    push!(x, d6)
+    x = cat(x..., dims=4)
+
+    push!(y, d2)
+    push!(y, d3)
+    push!(y, d4)
+    push!(y, d5)
+    push!(y, d6)
+    push!(y, d7)
+    y = cat(y..., dims=4)
+
+    return x,y
+
 end
