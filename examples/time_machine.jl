@@ -17,6 +17,11 @@ x, y = split_x_y(data1, data2, data3, data4, data5, data6, data7)
 x = dropdims(x, dims=3)
 y = dropdims(y, dims=3)
 
+x = Flux.unsqueeze(x, dims=4)
+y = Flux.unsqueeze(y, dims=4)
+x = Flux.unsqueeze(x, dims=5)
+y = Flux.unsqueeze(y, dims=5)
+
 # x_train, x_test, y_train, y_test = split_train_test(data1, data2, data3, data4, data5, data6, data7);
 
 # x_train = dropdims(x_train, dims=3);
@@ -25,16 +30,16 @@ y = dropdims(y, dims=3)
 # y_test = dropdims(y_test, dims=3);
 
 # Loading
-data = DataLoader((x, y); batchsize = 32, shuffle = true);
+data = DataLoader((x, y));
 #test_data = DataLoader((x_test, y_test); batchsize = 16, shuffle = true);
 
-
+# (100, 100, 144, 1, 1)
 # Dimensions
-dimensions = [32, 64, 32];
+dimensions = [1,2,4,8];
 
-machine = RecurMachine(dimensions, sigmoid; pad=1, timeblock=10);
+machine = ConvMachine(dimensions, sigmoid; pad=(1,1,1,1,10,0));
 
-model = Flux.Chain(machine, Conv((1,), sum(dimensions) => 100));
+model = Flux.Chain(machine, Conv((1,1,1), sum(dimensions) => 1));
 
 model = cpu(model);
 
@@ -43,14 +48,14 @@ opt = ADAM(0.01);
 params = Flux.params(model);
 
 # Loss function
-loss(x,y) = Flux.Losses.mse(model(x), y);
+loss(x,y) = Flux.Losses.mse(model(x), y); #mse
 
 # Training and plotting
 epochs = Int64[]
 loss_on_train = Float64[]
 best_params = Float32[]
 
-for epoch in 1:10
+for epoch in 1:100
 
     # Train
     Flux.train!(loss, params, data, opt)
@@ -84,42 +89,36 @@ xaxis!("Training epoch");
 savefig("loss_time_machine.png");
 
 
-heatmap(model(x_test)[:,:,22], color=:thermal);
-savefig("heatmap_time_machine2.png");
+heatmap(model(x)[3:98,3:98,144], color=:thermal) #togliendo il bordo
+#heatmap(model(x)[:,:,144], color=:thermal)
+savefig("heatmap_time_machine3.png");
+
+
+for i in 1:30
+    Flux.train!(loss, params, data, opt)
+    @show loss(x,y)
+end
 
 
 
-### PROVE
-# data1 = fill_missing_data(data1);
-# data2 = fill_missing_data(data2);
-# data3 = fill_missing_data(data3);
-# data4 = fill_missing_data(data4);
-# data5 = fill_missing_data(data5);
-# data6 = fill_missing_data(data6);
-# data7 = fill_missing_data(data7);
+# Metriche
+
+# Modello Naive 1 : compare 0 prediction model to my data
+#TRAIN
+error_naive1_train = Flux.Losses.mse(x, zeros(100,100,144,1,1))
+#TEST
+error_naive1_test = Flux.Losses.mse(y, zeros(100,100,144,1,1))
+
+# Modello Naive 2 : compare my data with my train data the day before
+#TRAIN
+error_naive2_train = Flux.Losses.mse(x[:,:,1:120,:,:], x[:,:,25:144,:,:])
+#TEST
+error_naive2_test = Flux.Losses.mse(y[:,:,1:120,:,:], y[:,:,25:144,:,:])
 
 
-# Normalize/standardize
-# ds1 = standardize_dataframe(data7);
-# m1 = fill_missing_data(ds1);
-# # Columns type conversion
+# Train set error: 
+error_train_set = Flux.Losses.mse(x[:,:,25:144,:,:], model(x)[:,:,1:120,:,:])
 
-# # data1[!,:smsin] = convert.(Float64,data1[!,:smsin])
-# # data1[!,:smsout] = convert.(Float64,data1[!,:smsout])
-# # data1[!,:callin] = convert.(Float64,data1[!,:callin])
-# # data1[!,:callout] = convert.(Float64,data1[!,:callout])
-# # data1[!,:internet] = convert.(Float64,data1[!,:internet])
-
-# # Grouped by and combine
-# grouped_data1 = groupby(m1, [:datetime, :CellID]);
-# d1 = @combine(grouped_data1, :max_i = maximum(:smsin)) #, :smsout, :callin, :callout, :internet]));  # ! non dovrei prendere solo smsin, ma tutte le variabili
-#                                                         # con le parentesi quadre non fa la stessa cosa! capire il perchè
-# # Now I want to make a "film" creating matrix with: same time, dispose by cellID, with intensity (value) the values in max_smsin
-
-# g1 = groupby(d1, [:datetime]); # here
-
-# d = make_film(g1);
-
-# NB: la griglia va dall'alto verso il basso mentre quella "vera" va al contrario
-
+# Test set error:
+error_test_set = Flux.Losses.mse(y[:,:,120:144,:,:], model(x)[:,:,120:144,:,:])
 
