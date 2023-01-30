@@ -5,8 +5,8 @@
 
 **Todos**
 - [x] Normalize data
-- [ ] Group by and take the maximum value for every CellID every 15 minutes
+- [x] Group by and take the maximum value for every CellID every 15 minutes
 - [x] Grid format: a bit strange geojson format
-- [ ] Plots
+- [x] Plots
 - [ ] Kepler.gl
-- [ ] Create images for machines. The images will be as the grid shows (the matrix have for elements the INTENSITY -> the value)
+- [x] Create images for machines. The images will be as the grid shows (the matrix have for elements the INTENSITY -> the value)
